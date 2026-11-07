@@ -99,7 +99,7 @@ Cada filho tem uma página (dashboard) com tudo em um lugar:
 ### 6.4 Financeiro
 - **Mensalidade por aluno:** valor acordado no cadastro, já com desconto (ex.: 30%, 70% ou outro), editável aluno por aluno.
 - **Cobranças extras** (apostila, uniforme, passeio, evento): a escola escolhe quem entra (um aluno, uma sala, várias salas ou todos) e **define valor e forma de pagamento de cada aluno**. Não há divisão igual automática. A cobrança aparece só na área do pai daquele aluno.
-- **Pagamento pelo pai, dentro do app:** Pix (QR Code), cartão de crédito, cartão de débito e boleto. Com mais de um filho, o pai vê o que deve de cada um e pode pagar um só ou juntar os dois na mesma cobrança.
+- **Pagamento pelo pai, dentro do app:** Pix (QR Code), cartão de crédito, cartão de débito (**a confirmar** — a API do Asaas não aceita) e boleto. Com mais de um filho, o pai vê o que deve de cada um e pode pagar um só ou juntar os dois na mesma cobrança (filhos da mesma escola; por Pix ou cartão).
 - **Baixa automática:** quando o gateway confirma, a cobrança fica paga.
 - **Dashboard da escola:** quanto entrou, quem pagou, quem está em atraso, quem falta pagar.
 - **Lembretes automáticos** antes e depois do vencimento, para mensalidade e extras (dias **a definir**).
@@ -177,7 +177,7 @@ Detalhamento em [`SRS.md`](./SRS.md).
 
 | Risco | Impacto | Mitigação |
 |---|---|---|
-| Período de avaliação do Asaas limita operações de subcontas novas | Escola não consegue cobrar no início | Confirmar regras com o gerente de contas antes de fechar |
+| Período de avaliação do Asaas: até R$ 2.000 em cobranças por subconta, até 10 subcontas, até 60 dias; conta principal precisa ser PJ | Escola não consegue cobrar a mensalidade de todos os alunos no início | Confirmar liberação com o gerente de contas antes da escola piloto; alternativa: escola conecta a própria conta Asaas ([ADR-005](./arquitetura/ADR-005-pagamentos-asaas-e-webhooks.md)) |
 | Enquadramento fiscal do dono do produto | Problemas tributários | Avaliar com contador |
 | Tag usada por outro aluno | Registro de presença falso | Foto na leitura ou conferência por funcionário (se necessário) |
 | Internet do leitor cai | Pais sem aviso de chegada | Buffer local no leitor e reenvio; avisos de ausência considerar atraso de sincronização |
@@ -204,6 +204,10 @@ Detalhamento em [`SRS.md`](./SRS.md).
 | Q13 | LGPD | Pai com vários filhos: um termo por filho ou termo único listando os filhos |
 | Q14 | LGPD | Prazo de guarda do histórico e dos comprovantes |
 | Q15 | LGPD | O que depende de consentimento vs. execução do contrato de matrícula (advogado) |
+| Q17 | Financeiro | Responsável financeiro de cada aluno (pagador no gateway) |
+| Q18 | Financeiro | Cartão de débito: o Asaas não aceita pela API — manter no escopo? |
+| Q19 | Financeiro | Subconta criada pela plataforma ou conta própria da escola conectada |
+| Q20 | Financeiro | Pagamento em duplicidade: estornar ou manter como crédito |
 | ~~Q16~~ | Escala | ~~Uma ou várias escolas desde o início~~ → **Decidido:** multiescola desde o início, banco único com isolamento por escola ([ADR-001](./arquitetura/ADR-001-multiescola-banco-unico-rls.md)) |
 
 ## 13. Glossário

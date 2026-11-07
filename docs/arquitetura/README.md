@@ -8,13 +8,13 @@ Cada decisão de arquitetura é registrada em um arquivo próprio: contexto, op�
 | [ADR-002](./ADR-002-stack.md) | Stack: React + Vite (PWA), NestJS, PostgreSQL + Drizzle, pg-boss, SSE | Aceita |
 | [ADR-003](./ADR-003-identidade-global-e-vinculos.md) | Identidade global de usuário e vínculos por escola | Aceita |
 | [ADR-004](./ADR-004-hospedagem.md) | Hospedagem: Cloudflare Pages + VPS em São Paulo | Proposta |
+| [ADR-005](./ADR-005-pagamentos-asaas-e-webhooks.md) | Pagamentos no Asaas: pagamento conjunto e webhooks idempotentes | Proposta |
 
 ## Próximas decisões
 
 | # | Tema |
 |---|---|
 | 3 | Atualização em tempo real e canal de notificações (push, e-mail, WhatsApp) |
-| 4 | Pagamento conjunto no Asaas e processamento idempotente de webhooks |
 | 5 | Leitor de tag: hardware, protocolo, autenticação e buffer offline |
 | 6 | Autenticação e sessão (cookies, tokens, troca de contexto), segredos e LGPD operacional |
 

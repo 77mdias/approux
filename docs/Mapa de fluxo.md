@@ -404,8 +404,8 @@ sequenceDiagram
     Pai->>App: Abre Financeiro
     App->>S: Lista cobranças em aberto
     S-->>App: Cobranças por filho (João, Maria)
-    Pai->>App: Seleciona cobranças - uma ou de vários filhos
-    Pai->>App: Escolhe forma: Pix, crédito, débito ou boleto
+    Pai->>App: Seleciona cobranças - uma ou de vários filhos da mesma escola
+    Pai->>App: Escolhe forma: Pix, cartão de crédito ou boleto - boleto só para cobrança individual
     App->>S: Solicita pagamento
     S->>S: Valida que as cobranças são dos filhos dele e estão abertas
     S->>G: Cria cobrança no gateway com a chave da subconta da escola
@@ -424,7 +424,7 @@ sequenceDiagram
     Note over S: Dashboard da escola atualiza: quanto entrou, quem pagou, quem está em atraso
 ```
 
-> Detalhe técnico para a fase de arquitetura: como representar "juntar os dois filhos na mesma cobrança" no gateway (cobrança agregada vs. várias cobranças pagas em um checkout).
+> Detalhamento técnico (título agrupado, idempotência, eventos fora de ordem, duplicidade e reconciliação): [ADR-005](./arquitetura/ADR-005-pagamentos-asaas-e-webhooks.md).
 
 ---
 

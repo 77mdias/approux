@@ -167,14 +167,18 @@ Produto novo, SaaS multiescola. Componentes lógicos:
 | RF-FIN-03 | A escola deve criar cobrança extra escolhendo destinatários: um aluno, uma sala, várias salas ou todos. | M |
 | RF-FIN-04 | Na cobrança extra, a escola deve informar valor e forma de pagamento **de cada aluno**; não há divisão automática. | M |
 | RF-FIN-05 | Cada cobrança deve aparecer somente na área do pai do aluno correspondente. | M |
-| RF-FIN-06 | O pai deve ver o que deve, por filho, e pagar dentro do app via Pix (QR Code), cartão de crédito, cartão de débito ou boleto. | M |
-| RF-FIN-07 | O pai com mais de um filho deve poder pagar a cobrança de um só ou juntar cobranças de vários filhos **da mesma escola** em um único pagamento. Filhos em escolas diferentes são pagos separadamente, um grupo por escola. | M |
+| RF-FIN-06 | O pai deve ver o que deve, por filho, e pagar dentro do app via Pix (QR Code), cartão de crédito ou boleto. Cartão de débito: a API do Asaas não aceita criar cobrança de débito — **a confirmar** com o Asaas (ADR-005). | M |
+| RF-FIN-07 | O pai com mais de um filho deve poder pagar a cobrança de um só ou juntar cobranças de vários filhos **da mesma escola** em um único pagamento, por Pix ou cartão de crédito (sem boleto — **a confirmar**). Filhos em escolas diferentes são pagos separadamente, um grupo por escola. | M |
 | RF-FIN-08 | A cobrança deve ser marcada como paga automaticamente ao receber a confirmação do gateway (webhook). | M |
 | RF-FIN-09 | A escola deve ter um dashboard: total recebido, quem pagou, quem está em atraso, quem falta pagar. | M |
 | RF-FIN-10 | A escola deve poder cancelar uma cobrança aberta. | S |
 | RF-FIN-11 | O sistema deve enviar lembretes automáticos antes e depois do vencimento, para mensalidade e extras (dias **a definir**). | M |
 | RF-FIN-12 | O sistema deve aplicar regras de atraso (multa, juros, bloqueio) conforme definido (**a definir**). | S |
 | RF-FIN-13 | Toda alteração em cobranças deve ser auditada. | M |
+| RF-FIN-14 | A escola deve indicar o **responsável financeiro** de cada aluno (pagador no gateway; CPF obrigatório). Padrão: primeiro responsável vinculado. | M |
+| RF-FIN-15 | O sistema deve detectar pagamento em duplicidade de uma cobrança e alertar a escola, que escolhe estornar ou manter como crédito (**a confirmar**). | M |
+| RF-FIN-16 | O sistema deve reconciliar diariamente os pagamentos de cada escola com o gateway e alertar quando a fila de webhooks parecer parada. | M |
+| RF-FIN-17 | O pagamento conjunto não pago expira no fim do dia e as cobranças voltam a ficar disponíveis. | M |
 
 ### 3.8 Entrada e saída por tag (TAG) — Fase 5
 
@@ -239,6 +243,7 @@ Produto novo, SaaS multiescola. Componentes lógicos:
 | RN-07 | Cobranças são emitidas na subconta da escola; o dinheiro cai direto nela, sem repasse. |
 | RN-08 | A baixa de uma cobrança ocorre apenas por confirmação do gateway (webhook); o mesmo evento não pode baixar duas vezes. |
 | RN-09 | Pagamento conjunto de vários filhos quita todas as cobranças incluídas, cada uma com seu valor; só é permitido entre cobranças da mesma escola (subconta). |
+| RN-24 | Uma cobrança pode estar em no máximo um pagamento conjunto ativo; ao pagar o conjunto, os títulos individuais abertos são cancelados no gateway. |
 | RN-23 | Um usuário é global e pode ter vínculos (gestor, professor, responsável) com várias escolas; nenhuma escola vê os vínculos ou dados de outra. |
 | RN-10 | Lembretes são enviados antes e depois do vencimento, para mensalidade e extras. |
 | RN-11 | Atraso: multa, juros e bloqueio **a definir**. |
@@ -279,7 +284,7 @@ Produto novo, SaaS multiescola. Componentes lógicos:
 | Confirmação de presença | evento, pai, aluno, resposta | Reuniões |
 | Aviso | escola, título, texto, destino (todos, sala, aluno), autor, data | Gera notificação |
 | Mensagem de justificativa | aluno, pai, data da falta, texto, status | Vai ao professor e à escola |
-| Cobrança | escola, aluno, tipo (mensalidade/extra), descrição, valor, vencimento, forma de pagamento, status (aberta, paga, atrasada, cancelada), id no gateway | Valor sempre definido por aluno |
+| Cobrança | escola, aluno, tipo (mensalidade/extra), competência (mensalidade), descrição, valor, vencimento, forma de pagamento, status (aberta, paga, atrasada, cancelada, estornada) | Valor sempre definido por aluno; o id no gateway fica no Título (ADR-005) |
 | Pagamento | cobrança, valor pago, forma (Pix, crédito, débito, boleto), data, id no gateway | Vem do webhook do gateway |
 | Notificação | usuário, texto, tipo, lida, data | Canal a definir |
 
@@ -295,7 +300,8 @@ Não aparecem na tabela de modelo de dados da especificação, mas são necessá
 | Disciplina | escola, nome | Professor–Sala, Nota |
 | Período letivo | escola, ano, períodos (bimestres etc.) | Nota, RN-22 |
 | Cobrança extra (lote) | escola, descrição, criado por, itens por aluno | RF-FIN-03/04 (agrupa as cobranças de um mesmo extra) |
-| Pagamento agrupado | responsável, cobranças incluídas, valor total, id no gateway | RF-FIN-07 |
+| Título no gateway | escola, tipo (individual/agrupado), id no Asaas, forma, valor, vencimento, status, link de pagamento; cobranças cobertas | RF-FIN-07, ADR-005 |
+| Cliente no gateway | escola, usuário (responsável financeiro), id do customer no Asaas | RF-FIN-14 |
 | Log de auditoria | escola, usuário, entidade, id, ação, antes, depois, motivo, data | RF-AUD-01/02 |
 | Evento de webhook | provedor, id do evento, payload, processado em | Idempotência (RN-08) |
 | Subconta do gateway | escola, id da subconta, referência da chave (cofre), status de aprovação | INT-01 |
@@ -335,7 +341,8 @@ Prazo de guarda do histórico de acessos, dados pedagógicos e comprovantes de a
 - Operações: criar subconta; criar/cancelar cobrança (Pix, cartão de crédito, cartão de débito, boleto); consultar status; receber webhooks de pagamento.
 - **Webhook:** o sistema recebe o aviso de pagamento e dá baixa na cobrança. Deve validar a autenticidade e ser **idempotente**.
 - **Mensalidade do sistema:** separada; futuramente via split ou cobrança mensal (**a definir**).
-- **Atenção:** subcontas criadas via API passam por período de avaliação com limites. Confirmar taxas, limites e regras com o gerente de contas antes de fechar.
+- **Atenção:** subcontas criadas via API passam por período de avaliação (até 10 subcontas, até R$ 2.000 em cobranças por subconta, até 60 dias) e a conta principal precisa ser PJ. Confirmar com o gerente de contas antes de fechar; alternativa: a escola conecta a própria conta Asaas (ADR-005 §7).
+- Detalhamento de idempotência, pagamento conjunto e mapeamento de eventos: [ADR-005](./arquitetura/ADR-005-pagamentos-asaas-e-webhooks.md).
 
 ### INT-02 — Leitor de tags
 - Rota da API (exemplo: `POST /acessos`) com: chave do leitor, código da tag e data/hora da leitura.
@@ -417,6 +424,11 @@ Prazo de guarda do histórico de acessos, dados pedagógicos e comprovantes de a
 | T-08 | Pai com dois filhos paga os dois juntos → ambas as cobranças pagas | RF-FIN-07, RN-09 |
 | T-16 | Pai com filhos nas escolas A e B: escola A não vê o filho, o vínculo nem as cobranças da escola B; pagamento conjunto entre escolas é recusado | RN-23, RN-09 |
 | T-17 | Escola cadastra responsável com e-mail já existente → nenhuma informação sobre a conta existente é revelada | RF-ESC-06 |
+| T-18 | Webhooks chegando fora de ordem (RECEIVED antes de CREATED) → estado final correto | ADR-005 |
+| T-19 | Timeout ao criar cobrança no Asaas e nova tentativa → um único título no gateway | ADR-005 |
+| T-20 | Pai paga o conjunto e um boleto individual no mesmo dia → alerta de duplicidade para a escola | RF-FIN-15 |
+| T-21 | Rotina de mensalidades executada duas vezes no mês → nenhuma cobrança duplicada | RF-FIN-02 |
+| T-22 | Webhook com evento ou campo desconhecido → responde 200 e não interrompe a fila | ADR-005 |
 | T-09 | Pai sem termo aceito tenta acessar dados (via API) → negado | RN-03 |
 | T-10 | Nova versão do termo publicada → pai é obrigado a reaceitar no próximo login | RF-LGP-10 |
 | T-11 | Cadastro sem CPF do responsável → termo não gerado e escola avisada | RF-LGP-03 |
