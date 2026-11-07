@@ -52,7 +52,7 @@ Produto novo, SaaS multiescola. Componentes lógicos:
 |---|---|---|
 | Escola (gestão) | Equipe administrativa da escola | Todos os dados da própria escola |
 | Professor | Docente com login próprio | Apenas salas (e disciplinas) atribuídas |
-| Pai/responsável | Um login por família | Apenas os filhos vinculados, após aceite do termo |
+| Pai/responsável | Um login por pessoa, válido em todas as escolas (ADR-003) | Apenas os filhos vinculados, inclusive em escolas diferentes, após aceite do termo de cada escola |
 | Leitor (sistema) | Dispositivo autenticado por chave de API | Apenas envio de leituras da própria escola |
 | Gateway (sistema) | Envia webhooks de pagamento | Apenas cobranças da subconta correspondente |
 | Admin da plataforma | Dono do produto; cadastra escolas | **a definir** (não descrito na especificação) |
@@ -89,6 +89,7 @@ Produto novo, SaaS multiescola. Componentes lógicos:
 | RF-AUT-06 | A sessão deve ser segura e expirar por inatividade (tempo **a definir**). | M |
 | RF-AUT-07 | Usuários inativos não podem entrar. | M |
 | RF-AUT-08 | Após o login, o usuário é direcionado à área do seu perfil. | M |
+| RF-AUT-09 | Usuário com mais de um contexto (filhos em escolas diferentes, professor em várias escolas, professor que também é pai) escolhe o contexto ativo e pode trocá-lo sem novo login; a troca valida o vínculo no servidor. | M |
 
 ### 3.2 Gestão da escola — cadastros (ESC) — Fase 1
 
@@ -99,7 +100,7 @@ Produto novo, SaaS multiescola. Componentes lógicos:
 | RF-ESC-03 | A escola deve cadastrar alunos com cadastro completo (nome, nascimento, sala, mensalidade acordada, desconto, tag, ativo). | M |
 | RF-ESC-04 | A escola deve vincular um aluno a um ou mais responsáveis, informando parentesco. | M |
 | RF-ESC-05 | Um responsável pode ser vinculado a vários alunos e usa um único login. | M |
-| RF-ESC-06 | Ao vincular um responsável sem conta, o sistema deve criar o usuário pai e enviar as credenciais/convite (canal **a definir**). | M |
+| RF-ESC-06 | Ao vincular um responsável, o sistema deve enviar um convite ao e-mail informado: se a pessoa já tiver conta, ela confirma o novo vínculo com o próprio login; se não, cria a senha. A escola vê apenas "convite enviado/aceito" e nunca descobre se a conta já existia (ADR-003). | M |
 | RF-ESC-07 | A escola deve cadastrar professores, criar o login deles e definir quais salas e disciplinas cada um atende. | M |
 | RF-ESC-08 | A escola deve ver a ficha do aluno com mensalidade, tag e pais. | M |
 | RF-ESC-09 | A escola deve acompanhar frequência, notas e comportamento de qualquer aluno. | M |
@@ -111,7 +112,7 @@ Produto novo, SaaS multiescola. Componentes lógicos:
 
 | ID | Requisito | Prior. |
 |---|---|---|
-| RF-PAI-01 | Após o login (e o aceite do termo), o pai deve ver a lista dos filhos vinculados e escolher qual acompanhar. | M |
+| RF-PAI-01 | Após o login (e o aceite do termo), o pai deve ver a lista dos filhos vinculados — agrupados por escola quando houver mais de uma — e escolher qual acompanhar. | M |
 | RF-PAI-02 | O pai deve poder trocar de filho a qualquer momento sem novo login. | M |
 | RF-PAI-03 | Se houver só um filho, o sistema pode abrir direto a página dele. | C |
 | RF-PAI-04 | A página do aluno deve mostrar: frequência (presenças, faltas, percentual), notas por disciplina e período, comportamento, entrada/saída, agenda, notificações e financeiro. | M |
@@ -167,7 +168,7 @@ Produto novo, SaaS multiescola. Componentes lógicos:
 | RF-FIN-04 | Na cobrança extra, a escola deve informar valor e forma de pagamento **de cada aluno**; não há divisão automática. | M |
 | RF-FIN-05 | Cada cobrança deve aparecer somente na área do pai do aluno correspondente. | M |
 | RF-FIN-06 | O pai deve ver o que deve, por filho, e pagar dentro do app via Pix (QR Code), cartão de crédito, cartão de débito ou boleto. | M |
-| RF-FIN-07 | O pai com mais de um filho deve poder pagar a cobrança de um só ou juntar cobranças de vários filhos em um único pagamento. | M |
+| RF-FIN-07 | O pai com mais de um filho deve poder pagar a cobrança de um só ou juntar cobranças de vários filhos **da mesma escola** em um único pagamento. Filhos em escolas diferentes são pagos separadamente, um grupo por escola. | M |
 | RF-FIN-08 | A cobrança deve ser marcada como paga automaticamente ao receber a confirmação do gateway (webhook). | M |
 | RF-FIN-09 | A escola deve ter um dashboard: total recebido, quem pagou, quem está em atraso, quem falta pagar. | M |
 | RF-FIN-10 | A escola deve poder cancelar uma cobrança aberta. | S |
@@ -212,7 +213,7 @@ Produto novo, SaaS multiescola. Componentes lógicos:
 | RF-LGP-10 | Ao publicar nova versão do modelo, todos os pais devem aceitar novamente no próximo login. | M |
 | RF-LGP-11 | O pai deve poder revogar o consentimento; o sistema registra a data da revogação e respeita os efeitos definidos no termo. | M |
 | RF-LGP-12 | A escola deve ver a lista de quem aceitou e quem não, enviar lembrete automático aos pendentes e baixar o comprovante de aceite de cada pai. | M |
-| RF-LGP-13 | Cada responsável de um mesmo aluno aceita com o próprio login. | M |
+| RF-LGP-13 | Cada responsável de um mesmo aluno aceita com o próprio login. Pai com filhos em escolas diferentes aceita o termo de cada escola separadamente; o bloqueio por termo pendente vale por escola. | M |
 | RF-LGP-14 | O sistema deve suportar pedidos do titular: consultar, corrigir e pedir exclusão (fluxo operacional **a definir**). | S |
 
 ### 3.10 Auditoria (AUD) — Fase 6
@@ -237,7 +238,8 @@ Produto novo, SaaS multiescola. Componentes lógicos:
 | RN-06 | Cada cobrança aparece apenas para os responsáveis do aluno a que pertence. |
 | RN-07 | Cobranças são emitidas na subconta da escola; o dinheiro cai direto nela, sem repasse. |
 | RN-08 | A baixa de uma cobrança ocorre apenas por confirmação do gateway (webhook); o mesmo evento não pode baixar duas vezes. |
-| RN-09 | Pagamento conjunto de vários filhos quita todas as cobranças incluídas, cada uma com seu valor. |
+| RN-09 | Pagamento conjunto de vários filhos quita todas as cobranças incluídas, cada uma com seu valor; só é permitido entre cobranças da mesma escola (subconta). |
+| RN-23 | Um usuário é global e pode ter vínculos (gestor, professor, responsável) com várias escolas; nenhuma escola vê os vínculos ou dados de outra. |
 | RN-10 | Lembretes são enviados antes e depois do vencimento, para mensalidade e extras. |
 | RN-11 | Atraso: multa, juros e bloqueio **a definir**. |
 | RN-12 | Professor só cria eventos nas suas salas e somente se a escola permitir naquela sala. |
@@ -261,7 +263,8 @@ Produto novo, SaaS multiescola. Componentes lógicos:
 | Entidade | Campos principais | Observações |
 |---|---|---|
 | Escola | nome, CNPJ, conta de pagamento (gateway), configurações (horários, tolerância, horário limite de ausência), plano do sistema | Raiz do isolamento multiescola |
-| Usuário | escola, nome, e-mail ou usuário, senha (hash), perfil (escola, professor, pai), ativo | Login dos três perfis |
+| Usuário | nome, e-mail (único global), telefone, senha (hash), ativo | **Global**, sem escola (ADR-003) |
+| Vínculo | usuário, escola, papel (gestor, professor, responsável), ativo | Uma pessoa pode ter vários vínculos em várias escolas |
 | Sala | escola, nome, ano letivo, turno, professores | Contagem de alunos calculada |
 | Professor–Sala | professor, sala, disciplina | Define o que o professor vê |
 | Aluno | escola, nome, nascimento, sala, mensalidade acordada, desconto, tag, ativo | Mensalidade é por aluno |
@@ -412,6 +415,8 @@ Prazo de guarda do histórico de acessos, dados pedagógicos e comprovantes de a
 | T-06 | Leitura dupla de tag em poucos segundos → um único registro | RN-16 |
 | T-07 | Leitor sem internet acumula leituras e reenvia → registros com horário correto, sem duplicar | RF-TAG-09 |
 | T-08 | Pai com dois filhos paga os dois juntos → ambas as cobranças pagas | RF-FIN-07, RN-09 |
+| T-16 | Pai com filhos nas escolas A e B: escola A não vê o filho, o vínculo nem as cobranças da escola B; pagamento conjunto entre escolas é recusado | RN-23, RN-09 |
+| T-17 | Escola cadastra responsável com e-mail já existente → nenhuma informação sobre a conta existente é revelada | RF-ESC-06 |
 | T-09 | Pai sem termo aceito tenta acessar dados (via API) → negado | RN-03 |
 | T-10 | Nova versão do termo publicada → pai é obrigado a reaceitar no próximo login | RF-LGP-10 |
 | T-11 | Cadastro sem CPF do responsável → termo não gerado e escola avisada | RF-LGP-03 |
@@ -444,7 +449,7 @@ Consolidados em [`PRD.md` §12](./PRD.md#12-pontos-em-aberto-consolidado). Itens
 
 | Módulo | Fase | Requisitos |
 |---|---|---|
-| Autenticação e cadastros | 1 | RF-AUT-*, RF-ESC-01..09, RF-ESC-12, RF-PAI-01..03 |
+| Autenticação e cadastros | 1 | RF-AUT-*, RF-AUT-09, RF-ESC-01..09, RF-ESC-12, RF-PAI-01..03 |
 | Acompanhamento | 2 | RF-PED-*, RF-PAI-04..06 |
 | Termo LGPD | 2 (recomendado) / 6 (original) | RF-LGP-* |
 | Agenda e comunicação | 3 | RF-AGE-*, RF-COM-*, RF-ESC-11 |

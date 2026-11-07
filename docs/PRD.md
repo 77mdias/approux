@@ -58,9 +58,9 @@ Aplicativo **real** de gestão escolar para escolas particulares, com três tipo
 |---|---|---|
 | **Escola (gestão)** | Login e senha | Tudo: salas, alunos, professores, agenda, avisos, financeiro, tags/leitores, termo LGPD, configurações |
 | **Professor** | Login e senha próprios | Somente as salas dele: lança notas, frequência, comportamento e eventos; recebe justificativas e confirmações; envia avisos às suas salas |
-| **Pai/responsável** | **Um login por família** | Os filhos cadastrados; escolhe qual acompanhar sem logar de novo; paga cobranças; confirma reunião; justifica falta |
+| **Pai/responsável** | **Um login por pessoa**, válido em todas as escolas | Os filhos cadastrados, inclusive em escolas diferentes; escolhe qual acompanhar sem logar de novo; paga cobranças; confirma reunião; justifica falta |
 
-Exemplo: o pai tem o João e a Maria. Entra uma vez, escolhe o filho e abre a página individual dele. Pode trocar de filho a qualquer momento.
+Exemplo: o pai tem o João e a Maria. Entra uma vez, escolhe o filho e abre a página individual dele. Pode trocar de filho a qualquer momento. Se o João estuda na Escola A e a Maria na Escola B, o pai usa o mesmo login e vê os dois filhos agrupados por escola.
 
 **Perfis em aberto**
 - **Aluno com acesso próprio:** **a definir** (por ora, só os pais).
@@ -143,7 +143,7 @@ Cada filho tem uma página (dashboard) com tudo em um lugar:
 
 - **Mobile first:** precisa funcionar bem no celular dos pais e professores (sugestão: PWA instalável).
 - **Segurança por perfil imposta no servidor**, em toda consulta — não só escondendo botões.
-- **Multiescola:** um sistema atende várias escolas, com dados isolados por escola.
+- **Multiescola desde o início:** um sistema atende várias escolas, com dados isolados por escola. Um mesmo pai pode ter filhos em escolas diferentes com um único login, e nenhuma escola enxerga dados da outra ([ADR-003](./arquitetura/ADR-003-identidade-global-e-vinculos.md)).
 - **LGPD:** dados de menores; consentimento, acesso restrito, senhas com hash, registro de acessos, prazo de guarda e exclusão sob pedido.
 - **Auditoria:** registro de quem alterou notas, frequência, cobranças e acessos.
 - **Confiabilidade financeira:** sem pagamento duplicado; webhook repetido não pode dar baixa duas vezes.
@@ -204,7 +204,7 @@ Detalhamento em [`SRS.md`](./SRS.md).
 | Q13 | LGPD | Pai com vários filhos: um termo por filho ou termo único listando os filhos |
 | Q14 | LGPD | Prazo de guarda do histórico e dos comprovantes |
 | Q15 | LGPD | O que depende de consentimento vs. execução do contrato de matrícula (advogado) |
-| Q16 | Escala | Uma ou várias escolas desde o início |
+| ~~Q16~~ | Escala | ~~Uma ou várias escolas desde o início~~ → **Decidido:** multiescola desde o início, banco único com isolamento por escola ([ADR-001](./arquitetura/ADR-001-multiescola-banco-unico-rls.md)) |
 
 ## 13. Glossário
 

@@ -174,8 +174,9 @@ flowchart LR
 flowchart TD
     A["Escolha do filho"] --> B{"Quantos filhos vinculados?"}
     B -->|Um| C["Abre direto a página do filho"]
-    B -->|Vários| D["Lista: João, Maria, ..."]
-    D --> C
+    B -->|Vários| D["Lista agrupada por escola: Escola A - João, Escola B - Maria"]
+    D --> X["Troca o contexto da sessão para a escola do filho"]
+    X --> C
     C --> E["Página do aluno"]
     E --> E1["Hoje: chegou às 07:12, está na escola"]
     E --> E2["Frequência: presenças, faltas, %"]
